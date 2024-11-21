@@ -4,12 +4,12 @@ This repo contains the codes for __medRxiv__link__
 
 This study compares the cost-effectiveness of 5 rotavirus vaccine strategies in Malawi from 2025-2034.
 
-### Vaccine strategies: 
-### 1. No vaccination 
-### 2. Rotarix 2-dose schedule (administered at 6 and 10 weeks)
-### 3. Rotarix 3-dose schedule (administered at 6, 10, and 14 weeks)
-### 4. Rotarix 3-dose schedule (administered at 6, 10, and 40 weeks)
-### 5. Next-generation neonatal (RV3-BB) 3-dose schedule (administered at 1, 6, and 10, weeks)
+#### Vaccine strategies: 
+####   1. No vaccination 
+####   2. Rotarix 2-dose schedule (administered at 6 and 10 weeks)
+####   3. Rotarix 3-dose schedule (administered at 6, 10, and 14 weeks)
+####   4. Rotarix 3-dose schedule (administered at 6, 10, and 40 weeks)
+####   5. Next-generation neonatal (RV3-BB) 3-dose schedule (administered at 1, 6, and 10, weeks)
 
 These strategies were evaluated from the government and societal perspectives. ICERs were calulated and cost-effectiveness was also evaluated using the net-benefit framework.
 
