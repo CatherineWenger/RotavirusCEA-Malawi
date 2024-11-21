@@ -101,7 +101,7 @@ outputArray <- as.data.frame(outputArray)
 
 #Import TDM simulation data
 ```{r, warning=FALSE}
-### Import disease data step removed for brevity
+load("TDMdata.Rdata")
 
 ```
 
@@ -649,3 +649,663 @@ for (j in 1:length(WTP)) {
 }
 ```
 
+## CEAC
+
+```{r}
+# Plot the results
+png('~/CEACP.png')
+plot(WTP, P_NB_NoVac, type= "l", col='black', ylab="Probability of being cost-effective",xlab="WTP",
+    main="Cost-Effectiveness Accesptability Curve\nAll Vaccine Strategies", ylim=c(0,1))
+lines(WTP, P_NB_Rotarix6_10, col='#CA0020')
+lines(WTP, P_NB_Rotarix6_10_14, col='#006BA4FF')
+lines(WTP, P_NB_Rotarix6_10_40, col='#ABABABFF')
+lines(WTP, P_NB_Neonatal1_6_10, col='#FF800EFF')
+abline(v=335,col="darkgreen")
+text(x=320, y=0.5, srt=90,col="darkgreen", cex=0.75, 'WTP (US $335)')
+legend("bottomright",legend=c("No vaccination","Rotarix6_10","Rotarix6_10_14","Rotarix6_10_40","Neonatal1_6_10"),
+      col=c("#595959FF","#CA0020","#006BA4FF","#ABABABFF","#FF800EFF"),
+      lty=1, ncol=1, cex =.7, pt.cex = 1)
+
+dev.off()
+
+```
+
+## CEAF
+
+```{r}
+# Plot the results
+png('~/CEAFP.png')
+plot(WTP, CEAF_NoVac, type= "b", col='black', ylab="Probability of having highest net benefit",xlab="WTP",
+    main="Cost-Effectiveness Accesptability Frontier\nAll Vaccine Strategies", ylim=c(0,1))
+lines(WTP,CEAF_NoVac, col='black')
+lines(WTP, CEAF_Rotarix6_10, col='#CA0020')
+lines(WTP, CEAF_Rotarix6_10_14, col='#006BA4FF')
+lines(WTP, CEAF_Rotarix6_10_40, col='#ABABABFF')
+lines(WTP, CEAF_Neonatal1_6_10, col='#FF800EFF')
+points(WTP, CEAF_Rotarix6_10, col='#CA0020')
+points(WTP, CEAF_Rotarix6_10_14, col='#006BA4FF')
+points(WTP, CEAF_Rotarix6_10_40, col='#ABABABFF')
+points(WTP, CEAF_Neonatal1_6_10, col='#FF800EFF')
+abline(v=335,col="darkgreen")
+text(x=320, y=0.5, srt=90,col="darkgreen", cex=0.75, 'WTP (US $335)')
+legend("bottomright",legend=c("No Vaccination","Rotarix6_10 vaccination","Rotarix6_10_14 vaccination","Rotarix6_10_40 vaccination","Neonatal1_6_10 vaccination"),
+      col=c("#595959FF","#CA0020","#006BA4FF","#ABABABFF","#FF800EFF"),
+      lty=1, ncol=1, cex =.7, pt.cex = 1)
+dev.off()
+```
+
+## ICERs
+
+```{r}
+## AVERAGE METRICS FOR ALL SIMULATIONS
+
+#total cost
+TotCost_NoVac          <- mean(outputArray$NoVacCost)
+TotCost_Rotarix6_10    <- mean(outputArray$Rotarix6_10Cost)
+TotCost_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14Cost)
+TotCost_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40Cost)
+TotCost_Neonatal1_6_10 <- mean(outputArray$Neonatal1_6_10Cost)
+#intervention cost
+IntCost_NoVac          <- mean(outputArray$NoVacCostInt)
+IntCost_Rotarix6_10    <- mean(outputArray$Rotarix6_10CostInt)
+IntCost_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14CostInt)
+IntCost_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40CostInt)
+IntCost_Neonatal1_6_10 <- mean(outputArray$Neonatal1_6_10CostInt)
+#treatment cost
+TrtCost_NoVac          <- mean(outputArray$NoVacCostTrt)
+TrtCost_Rotarix6_10    <- mean(outputArray$Rotarix6_10CostTrt)
+TrtCost_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14CostTrt)
+TrtCost_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40CostTrt)
+TrtCost_Neonatal1_6_10 <- mean(outputArray$Neonatal1_6_10CostTrt)
+#dalys
+DALYs_NoVac          <- mean(outputArray$NoVacDALYs)
+DALYs_Rotarix6_10    <- mean(outputArray$Rotarix6_10DALYs)
+DALYs_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14DALYs)
+DALYs_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40DALYs)
+DALYs_Neonatal1_6_10 <- mean(outputArray$Neonatal1_6_10DALYs)
+
+#cost difference
+costDiffNoVac   <- TotCost_NoVac - TotCost_Rotarix6_10
+costDiff6_10_14 <- TotCost_Rotarix6_10_14 - TotCost_Rotarix6_10
+costDiff6_10_40 <- TotCost_Rotarix6_10_40 - TotCost_Rotarix6_10
+costDiff1_6_10  <- TotCost_Neonatal1_6_10 - TotCost_Rotarix6_10
+
+#average outcomes averted
+CasesavNV   <- mean(outputArray$CasesAverted_NoVac)
+Casesav14   <- mean(outputArray$CasesAverted_Rotarix6_10_14)
+Casesav40   <- mean(outputArray$CasesAverted_Rotarix6_10_40)
+CasesavN10  <- mean(outputArray$CasesAverted_Neonatal1_6_10)
+HospsavNV   <- mean(outputArray$HospAverted_NoVac)
+Hospsav14   <- mean(outputArray$HospAverted_Rotarix6_10_14)
+Hospsav40   <- mean(outputArray$HospAverted_Rotarix6_10_40)
+HospsavN10  <- mean(outputArray$HospAverted_Neonatal1_6_10)
+DALYsavNV   <- mean(outputArray$DALYsAverted_NoVac)
+DALYsav14   <- mean(outputArray$DALYsAverted_Rotarix6_10_14)
+DALYsav40   <- mean(outputArray$DALYsAverted_Rotarix6_10_40)
+DALYsavN10  <- mean(outputArray$DALYsAverted_Neonatal1_6_10)
+DeathsavNV  <- mean(outputArray$DeathsAverted_NoVac)
+Deathsav14  <- mean(outputArray$DeathsAverted_Rotarix6_10_14)
+Deathsav40  <- mean(outputArray$DeathsAverted_Rotarix6_10_40)
+DeathsavN10 <- mean(outputArray$DeathsAverted_Neonatal1_6_10)
+#costs per outcome averted
+costCaseAvNV        <- costDiffNoVac/CasesavNV
+costCaseAv6_10_14   <- costDiff6_10_14/Casesav14
+costCaseAv6_10_40   <- costDiff6_10_40/Casesav40
+costCaseAv1_6_10    <- costDiff1_6_10/CasesavN10
+costHospAvNV        <- costDiffNoVac/HospsavNV
+costHospAv6_10_14   <- costDiff6_10_14/Hospsav14
+costHospAv6_10_40   <- costDiff6_10_40/Hospsav40
+costHospAv1_6_10    <- costDiff1_6_10/HospsavN10
+costDALYAvNV        <- costDiffNoVac/DALYsavNV
+costDALYAv6_10_14   <- costDiff6_10_14/DALYsav14
+costDALYAv6_10_40   <- costDiff6_10_40/DALYsav40
+costDALYAv1_6_10    <- costDiff1_6_10/DALYsavN10
+costDeathAvNV       <- costDiffNoVac/DeathsavNV
+costDeathAv6_10_14  <- costDiff6_10_14/Deathsav14
+costDeathAv6_10_40  <- costDiff6_10_40/Deathsav40
+costDeathAv1_6_10   <- costDiff1_6_10/DeathsavN10
+
+
+x <- c(outputArray$CERatioX_NoVac,outputArray$CERatioX_Rotarix6_10_14,
+       outputArray$CERatioX_Rotarix6_10_40,outputArray$CERatioX_Neonatal1_6_10)
+y <- c(outputArray$CERatioY_NoVac,outputArray$CERatioY_Rotarix6_10_14,
+       outputArray$CERatioY_Rotarix6_10_40,outputArray$CERatioY_Neonatal1_6_10)
+Strategy <- c(rep("No Vaccination",length(outputArray$CERatioX_NoVac)),
+              rep("Rotarix 6/10/14",length(outputArray$CERatioX_NoVac)),
+              rep("Rotarix 6/10/40",length(outputArray$CERatioX_NoVac)),
+              rep("Neonatal 1/6/10",length(outputArray$CERatioX_NoVac)))
+data1 <- data.frame(x,y,Strategy)
+
+manual_points <- data.frame(
+  x = c(DALYsavNV,DALYsav14,DALYsavN10),  # x-coordinates of the points
+  y = c(costDiffNoVac,costDiff6_10_14,costDiff1_6_10),  # y-coordinates of the points
+  label = c(print(round(costDALYAvNV,2)),print(round(costDALYAv6_10_14,2)),"Cost-saving"),  # Labels for the points
+  col = c("black", "royalblue4","orangered")  # Colors for the points
+)
+manual_points1 <- data.frame(
+  x = c(DALYsav40),  # x-coordinates of the points
+  y = c(costDiff6_10_40),  # y-coordinates of the points
+  label = c(print(round(costDALYAv6_10_40,2))),  # Labels for the points
+  col = c("gray34")  # Colors for the points
+)
+
+ggplot(data1,aes(x,y,col=Strategy)) + 
+  ggtitle("Cost-Effectiveness Plane", subtitle="Government Perspective - Strategies Compared to Rotarix 6/10") + 
+  geom_point(size=0.5) + geom_textabline(slope=335, color="darkgreen",label="WTP Threshold") + 
+  xlab("Difference in Effects of Vaccine Strategy (DALYs Averted)") + ylab("Difference in Cost of Vaccine Strategy") + 
+  geom_hline(yintercept=0, color = "black") + geom_vline(xintercept=0, color = "black") + 
+  scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3)) + 
+  scale_y_continuous(labels = unit_format(unit = "K", scale = 1e-3)) + 
+  theme(axis.text.y = element_text(angle = 90, hjust = 0.5)) +
+  scale_color_manual(values = c("#FF800EFF","#595959FF","#006BA4FF","#ABABABFF")) + 
+  # Add manual points with different colors
+  geom_point(data = manual_points, aes(x = x, y = y), color = manual_points$col, size = 3) +
+  geom_text(data = manual_points, aes(x = x, y = y, label = label), vjust = 1, hjust = -0.25, size = 4, fontface="bold", color = "black") +
+  geom_point(data = manual_points1, aes(x = x, y = y), color = manual_points1$col, size = 3) +
+  geom_text(data = manual_points1, aes(x = x, y = y, label = label), vjust = -1, hjust = 1.5, size = 4, fontface="bold", color = "black") +
+  # geom_text(data = manual_points, aes(x = x, y = y, label = label), vjust = -1, size = 3) + 
+  guides(colour = guide_legend(override.aes = list(size = 3))) + 
+  theme(legend.title = element_text( size=10, face="bold"),legend.text = element_text(size=10,face="bold")) 
+# +xlim(c(-60000000,40000000))+ylim(c(-60000000,40000000))
+
+ggsave("CEAplane_plot3P.png", path ="~")
+
+# code for % in Q3
+mat <- rbind(outputArray$CERatioX_Neonatal1_6_10,outputArray$CERatioY_Neonatal1_6_10)
+mat <- t(mat)
+count <- 0
+for (i in 1:1000){ if(mat[i,2]<0){count <- count+1}}
+count/1000
+# # [1] 0.793
+
+```
+
+## Violin Plots
+```{r}
+library(datasets)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(patchwork)
+Labels <- c("No Vax","1/6/10","6/10","6/10/14", "6/10/40")
+
+NewOA <- outputArray[,1:5] %>%
+  mutate(across(everything(), ~ . / 1e6)) %>%
+  pivot_longer(
+    cols = everything(),     # Include all columns
+    names_to = "Variable",   # New column for variable names
+    values_to = "Value"      # New column for the values
+  ) %>%
+  group_by(Variable) %>%
+  mutate(paired = seq_len(n())) %>% # Use seq_len(n()) to avoid potential issues with length
+  ungroup() %>%
+  mutate(
+    Variable = factor(Variable, levels = c(
+      "NumCases_NoVac",
+      "NumCases_Neonatal1_6_10",
+      "NumCases_Rotarix6_10",
+      "NumCases_Rotarix6_10_14",
+      "NumCases_Rotarix6_10_40"
+    )) # Explicitly set the order
+  )
+
+cases <- ggplot(data = NewOA,
+            mapping = aes(x = Variable, y = Value, fill = Variable)) +
+            ggtitle("Cases") +
+            geom_line(mapping = aes(group = paired), 
+                      position = position_dodge(0.1), 
+                      alpha = 0.1,   # Increase transparency for lines
+                      color = "grey46", # Set a lighter color for the lines
+                      linewidth = 0.25 # Use a thinner line
+                      ) +
+            geom_violin() +
+            geom_point(mapping = aes(fill = Variable, group = paired),
+                       size = 0.25, shape = 21,
+                       position = position_dodge(0.1)) +
+            scale_fill_manual(
+              values = c(
+                "NumCases_NoVac" = "#595959FF",      # Blue
+                "NumCases_Neonatal1_6_10" = "#FF800EFF",
+                "NumCases_Rotarix6_10" = "#CA0020", # Green
+                "NumCases_Rotarix6_10_14" = "#006BA4FF", # Red
+                "NumCases_Rotarix6_10_40" = "#ABABABFF"  # Purple
+              )
+            ) +
+            scale_x_discrete(labels = Labels) + scale_y_continuous(limits = c(5,15)) +
+              theme_classic() + xlab(NULL) + ylab("Cases (millions)") +
+               theme(axis.text.y = element_text(size = 14),
+                axis.text.x = element_text(size = 14, face = "bold",angle = 45, hjust = 1, vjust = 1),
+                axis.title.y = element_text(size = 16, face = "bold"),
+                plot.title = element_text(size = 20, face = "bold",hjust = 0.5)) +
+            theme(legend.position = "none")
+
+library(datasets)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+NewOA <- outputArray[,16:20] %>%
+  mutate(across(everything(), ~ . / 1e3)) %>%
+  pivot_longer(
+    cols = everything(),     # Include all columns
+    names_to = "Variable",   # New column for variable names
+    values_to = "Value"      # New column for the values
+  ) %>%
+  group_by(Variable) %>%
+  mutate(paired = seq_len(n())) %>% # Use seq_len(n()) to avoid potential issues with length
+  ungroup() %>%
+  mutate(
+    Variable = factor(Variable, levels = c(
+      "NoVacHosp",
+      "Neonatal1_6_10Hosp",
+      "Rotarix6_10Hosp",
+      "Rotarix6_10_14Hosp",
+      "Rotarix6_10_40Hosp"
+    )) # Explicitly set the order
+  )
+
+hosp <- ggplot(data = NewOA,
+            mapping = aes(x = Variable, y = Value, fill = Variable)) +
+            ggtitle("Hospitalizations") +
+            geom_line(mapping = aes(group = paired), 
+                      position = position_dodge(0.1), 
+                      alpha = 0.1,   # Increase transparency for lines
+                      color = "grey46", # Set a lighter color for the lines
+                      linewidth = 0.25 # Use a thinner line
+                      ) +
+            geom_violin() +
+            geom_point(mapping = aes(fill = Variable, group = paired),
+                       size = 0.25, shape = 21,
+                       position = position_dodge(0.1)) +
+            scale_fill_manual(
+              values = c(
+                "NoVacHosp" = "#595959FF",      # Blue
+                "Neonatal1_6_10Hosp" = "#FF800EFF",
+                "Rotarix6_10Hosp" = "#CA0020", # Green
+                "Rotarix6_10_14Hosp" = "#006BA4FF", # Red
+                "Rotarix6_10_40Hosp" = "#ABABABFF"  # Purple
+              )
+            ) +
+            scale_x_discrete(labels = Labels) + scale_y_continuous(limits = c(150, 500)) +
+              theme_classic() + xlab(NULL) + ylab("Hospitalizations (thousands)") +
+               theme(axis.text.y = element_text(size = 14),
+                axis.text.x = element_text(size = 14, face = "bold",angle = 45, hjust = 1, vjust = 1),
+                axis.title.y = element_text(size = 16, face = "bold"),
+                plot.title = element_text(size = 20, face = "bold",hjust = 0.5)) +
+            theme(legend.position = "none")
+NewOA <- outputArray[,53:57] %>%
+  mutate(across(everything(), ~ . / 1e3)) %>%
+  pivot_longer(
+    cols = everything(),     # Include all columns
+    names_to = "Variable",   # New column for variable names
+    values_to = "Value"      # New column for the values
+  ) %>%
+  group_by(Variable) %>%
+  mutate(paired = seq_len(n())) %>% # Use seq_len(n()) to avoid potential issues with length
+  ungroup() %>%
+  mutate(
+    Variable = factor(Variable, levels = c(
+      "NoVacDALYs",
+      "Neonatal1_6_10DALYs",
+      "Rotarix6_10DALYs",
+      "Rotarix6_10_14DALYs",
+      "Rotarix6_10_40DALYs"
+    )) # Explicitly set the order
+  )
+
+dalys <- ggplot(data = NewOA,
+            mapping = aes(x = Variable, y = Value, fill = Variable)) +
+            ggtitle("DALYs") +
+            geom_line(mapping = aes(group = paired), 
+                      position = position_dodge(0.1), 
+                      alpha = 0.1,   # Increase transparency for lines
+                      color = "grey46", # Set a lighter color for the lines
+                      linewidth = 0.25 # Use a thinner line
+                      ) +
+            geom_violin() +
+            geom_point(mapping = aes(fill = Variable, group = paired),
+                       size = 0.25, shape = 21,
+                       position = position_dodge(0.1)) +
+            scale_fill_manual(
+              values = c(
+                "NoVacDALYs" = "#595959FF",      # Blue
+                "Neonatal1_6_10DALYs" = "#FF800EFF",
+                "Rotarix6_10DALYs" = "#CA0020", # Green
+                "Rotarix6_10_14DALYs" = "#006BA4FF", # Red
+                "Rotarix6_10_40DALYs" = "#ABABABFF"  # Purple
+              )
+            ) +
+            scale_x_discrete(labels = Labels) + scale_y_continuous(limits = c(0, NA)) +
+              theme_classic() + xlab(NULL) + ylab("DALYs  (thousands)") +
+               theme(axis.text.y = element_text(size = 14),
+                axis.text.x = element_text(size = 14, face = "bold",angle = 45, hjust = 1, vjust = 1),
+                axis.title.y = element_text(size = 16, face = "bold"),
+                plot.title = element_text(size = 20, face = "bold",hjust = 0.5)) +
+            theme(legend.position = "none")
+
+NewOA <- outputArray[,21:25] %>%
+  mutate(across(everything(), ~ . / 1e3)) %>%
+  pivot_longer(
+    cols = everything(),     # Include all columns
+    names_to = "Variable",   # New column for variable names
+    values_to = "Value"      # New column for the values
+  ) %>%
+  group_by(Variable) %>%
+  mutate(paired = seq_len(n())) %>% # Use seq_len(n()) to avoid potential issues with length
+  ungroup() %>%
+  mutate(
+    Variable = factor(Variable, levels = c(
+      "NoVacDeaths",
+      "Neonatal1_6_10Deaths",
+      "Rotarix6_10Deaths",
+      "Rotarix6_10_14Deaths",
+      "Rotarix6_10_40Deaths"
+    )) # Explicitly set the order
+  )
+
+deaths <- ggplot(data = NewOA,
+            mapping = aes(x = Variable, y = Value, fill = Variable)) +
+            ggtitle("Deaths") +
+            geom_line(mapping = aes(group = paired), 
+                      position = position_dodge(0.1), 
+                      alpha = 0.1,   # Increase transparency for lines
+                      color = "grey46", # Set a lighter color for the lines
+                      linewidth = 0.25 # Use a thinner line
+                      ) +
+            geom_violin() +
+            geom_point(mapping = aes(fill = Variable, group = paired),
+                       size = 0.25, shape = 21,
+                       position = position_dodge(0.1)) +
+            scale_fill_manual(
+              values = c(
+                "NoVacDeaths" = "#595959FF",      # Blue
+                "Neonatal1_6_10Deaths" = "#FF800EFF",
+                "Rotarix6_10Deaths" = "#CA0020", # Green
+                "Rotarix6_10_14Deaths" = "#006BA4FF", # Red
+                "Rotarix6_10_40Deaths" = "#ABABABFF"  # Purple
+              )
+            ) +
+            scale_x_discrete(labels = Labels) + scale_y_continuous(limits = c(0, NA)) +
+              theme_classic() + xlab(NULL) + ylab("Deaths (thousands)") +
+               theme(axis.text.y = element_text(size = 14),
+                axis.text.x = element_text(size = 14, face = "bold",angle = 45, hjust = 1, vjust = 1),
+                axis.title.y = element_text(size = 16, face = "bold"),
+                plot.title = element_text(size = 20, face = "bold",hjust = 0.5)) +
+            theme(legend.position = "none")
+
+cases
+ggsave("CasesPlot.png", path ="~")
+hosp
+ggsave("HospPlot.png", path ="~")
+dalys
+ggsave("DALYsPlot.png", path ="~")
+deaths
+ggsave("DeathsPlot.png", path ="~")
+combined_plot <- cases + hosp +  dalys + deaths +
+  plot_layout(ncol = 2) # Set number of columns
+
+# Display the combined plot
+print(combined_plot)
+ggsave("Plots1.png", path ="~",width = 15, height = 12, dpi = 300)
+
+```
+
+## Tables
+
+```{r}
+#### Table 1
+labs <- c("No Vaccination", "1/6/10","6/10","6/10/14","6/10/40")
+costdata <- c(IntCost_NoVac,IntCost_Neonatal1_6_10,IntCost_Rotarix6_10,IntCost_Rotarix6_10_14,IntCost_Rotarix6_10_40,
+              TrtCost_NoVac,TrtCost_Neonatal1_6_10,TrtCost_Rotarix6_10,TrtCost_Rotarix6_10_14,TrtCost_Rotarix6_10_40,
+              TotCost_NoVac,TotCost_Neonatal1_6_10,TotCost_Rotarix6_10,TotCost_Rotarix6_10_14, TotCost_Rotarix6_10_40,
+              costDiffNoVac,costDiff1_6_10,NA,costDiff6_10_14,costDiff6_10_40)
+
+costdata <- round(costdata,-5)
+a <- costdata[1:5]
+b <- costdata[6:10]
+c <- costdata[11:15]
+d <- costdata[16:20]
+table4 <- data.frame(labs,a,b,c,d)
+
+table4 |>
+  gt() |>
+  tab_header(
+    title = "Costs by Vaccine Schedule",
+    subtitle = glue::glue("Government Perspective - Compared to the 6/10 Rotarix Schedule")
+  ) |>
+  cols_label(labs = " ",a="Intervention Cost",b="Treatment Cost",c="Total Cost", d="Cost Difference")|>
+  fmt_currency(
+    columns = c(a,b,c,d),
+    currency = "USD",
+    decimals=0
+  )|> gtsave(filename = "CostByScheduleT1P.png",path ="~")
+
+
+#### Table 2
+
+Number_Cases <- c("No Vaccination","Neonatal 1/6/10","Rotarix 6/10","Rotarix 6/10/14", "Rotarix 6/10/40")
+averted <- c(round(mean(outputArray$NumCases_NoVac),-2),round(mean(outputArray$NumCases_Neonatal1_6_10),-2),
+             round(mean(outputArray$NumCases_Rotarix6_10),-2),round(mean(outputArray$NumCases_Rotarix6_10_14),-2),
+             round(mean(outputArray$NumCases_Rotarix6_10_40),-2),round(mean(outputArray$MSCases_NoVac),-2),
+             round(mean(outputArray$MSCases_Neonatal1_6_10),-2),round(mean(outputArray$MSCases_Rotarix6_10),-2),
+             round(mean(outputArray$MSCases_Rotarix6_10_14),-2),round(mean(outputArray$MSCases_Rotarix6_10_40),-2),
+             round(mean(outputArray$NSCases_NoVac),-2),round(mean(outputArray$NSCases_Neonatal1_6_10),-2),
+             round(mean(outputArray$NSCases_Rotarix6_10),-2),round(mean(outputArray$NSCases_Rotarix6_10_14),-2),
+             round(mean(outputArray$NSCases_Rotarix6_10_40),-2),
+             round(mean(outputArray$NoVacHosp),-2),round(mean(outputArray$Neonatal1_6_10Hosp),-2),
+             round(mean(outputArray$Rotarix6_10Hosp),-2),round(mean(outputArray$Rotarix6_10_14Hosp),-2),
+             round(mean(outputArray$Rotarix6_10_40Hosp),-2),round(mean(outputArray$NoVacDALYs),-2),
+             round(mean(outputArray$Neonatal1_6_10DALYs),-2),round(mean(outputArray$Rotarix6_10DALYs),-2),
+             round(mean(outputArray$Rotarix6_10_14DALYs),-2),round(mean(outputArray$Rotarix6_10_40DALYs),-2),
+             round(mean(outputArray$NoVacDeaths),-2),round(mean(outputArray$Neonatal1_6_10Deaths),-2),
+             round(mean(outputArray$Rotarix6_10Deaths),-2),round(mean(outputArray$Rotarix6_10_14Deaths),-2),
+             round(mean(outputArray$Rotarix6_10_40Deaths),-2))
+z <- averted[1:5]
+x <- averted[6:10]
+a <- averted[11:15]
+b <- averted[16:20]
+c <- averted[21:25]
+d <- averted[26:30]
+table2 <- data.frame(Number_Cases,z,x,a,b,c,d)
+
+table2 |>
+  gt() |>
+  tab_header(
+    title = "Outcomes by Vaccine Schedule",
+    subtitle = glue::glue(" ")
+  )  |>
+  cols_label(Number_Cases=" ",z="Total Cases (n)",x="Moderate-Severe Cases (n)",a="Non-Severe Cases (n)",b="Hospitalizations (n)",c="DALYs (n)",d="Deaths (n)"
+  )|> gtsave(filename = "OutcomesT2P.png",path ="~")
+#####################
+Number_Averted <- c("No Vaccine", "Neonatal 1/6/10","Rotarix 6/10","Rotarix 6/10/14", "Rotarix 6/10/40")
+averted <- c(#cost
+             round(TotCost_NoVac,-5),round(TotCost_Neonatal1_6_10,-5),round(TotCost_Rotarix6_10,-5),
+             round(TotCost_Rotarix6_10_14,-5),round(TotCost_Rotarix6_10_40,-5),
+             #DALYs
+             round(DALYs_NoVac,-2),round(DALYs_Neonatal1_6_10,-2),round(DALYs_Rotarix6_10,-2),
+             round(DALYs_Rotarix6_10_14,-2),round(DALYs_Rotarix6_10_40,-2),
+             #DALYs Averted
+             round(DALYsavNV,-2),round(DALYsavN10,-2),NA,round(DALYsav14,-2),round(DALYsav40,-2),
+             #cost per DALY averted
+             round(costDALYAvNV,2),costDALYAv1_6_10,NA,round(costDALYAv6_10_14,2),round(costDALYAv6_10_40,2),
+             # NA,"Cost-saving",NA,"$49","$75",
+             #ICER
+             "--",round(mean(outputArray$ICERatio_Neonatal1_6_10),1),
+             round(mean(outputArray$ICERatio_Rotarix6_10),1),round(mean(outputArray$ICERatio_Rotarix6_10_14),1),
+             round(mean(outputArray$ICERatio_Rotarix6_10_40),1))
+             # "--",round(mean(outputArray$ICERatio_Neonatal1_6_10),1),"Strongly Dominated","Strongly Dominated","Strongly Dominated")
+z <- as.numeric(averted[1:5])
+x <- averted[6:10]
+a <- averted[11:15]
+b <- averted[16:20]
+c <- averted[21:25]
+
+table3 <- data.frame(Number_Averted,z,x,a,b,c)
+
+table3 |>
+  gt() |>
+  tab_header(
+    title = "Cost-Effectiveness Comparison of All Vaccine Strategies",
+    subtitle = glue::glue("Government Perspective - Compared to the 6/10 Rotarix Schedule")
+  )  |>
+  cols_label(Number_Averted=" ",z="Cost",x="DALYs (n)",a="DALYs Averted (n)",b="Cost per DALY averted", c="ICER")|>
+  fmt_currency(
+    columns = c(z),
+    currency = "USD",
+    decimals=0
+  )|>
+  tab_footnote(
+    footnote = "No DALYs averted.",
+    locations = cells_body(columns = b, rows = 1)
+  )|> gtsave(filename = "CostAndOutcomesP.png",path ="~")
+
+```
+
+
+Quantiles
+
+```{r}
+## Prediction Intervals for each MEAN
+#total cost
+TotCost_NoVac          <- quantile(outputArray$NoVacCost,c(0.025,0.975))
+TotCost_Rotarix6_10    <- quantile(outputArray$Rotarix6_10Cost,c(0.025,0.975))
+TotCost_Rotarix6_10_14 <- quantile(outputArray$Rotarix6_10_14Cost,c(0.025,0.975))
+TotCost_Rotarix6_10_40 <- quantile(outputArray$Rotarix6_10_40Cost,c(0.025,0.975))
+TotCost_Neonatal1_6_10 <- quantile(outputArray$Neonatal1_6_10Cost,c(0.025,0.975))
+#intervention cost
+IntCost_NoVac          <- quantile(outputArray$NoVacCostInt,c(0.025,0.975))
+IntCost_Rotarix6_10    <- quantile(outputArray$Rotarix6_10CostInt,c(0.025,0.975))
+IntCost_Rotarix6_10_14 <- quantile(outputArray$Rotarix6_10_14CostInt,c(0.025,0.975))
+IntCost_Rotarix6_10_40 <- quantile(outputArray$Rotarix6_10_40CostInt,c(0.025,0.975))
+IntCost_Neonatal1_6_10 <- quantile(outputArray$Neonatal1_6_10CostInt,c(0.025,0.975))
+#treatment cost
+TrtCost_NoVac          <- quantile(outputArray$NoVacCostTrt,c(0.025,0.975))
+TrtCost_Rotarix6_10    <- quantile(outputArray$Rotarix6_10CostTrt,c(0.025,0.975))
+TrtCost_Rotarix6_10_14 <- quantile(outputArray$Rotarix6_10_14CostTrt,c(0.025,0.975))
+TrtCost_Rotarix6_10_40 <- quantile(outputArray$Rotarix6_10_40CostTrt,c(0.025,0.975))
+TrtCost_Neonatal1_6_10 <- quantile(outputArray$Neonatal1_6_10CostTrt,c(0.025,0.975))
+
+
+NumCases_NoVac          <- quantile(outputArray$NumCases_NoVac,c(0.025,0.975))
+NumCases_Neonatal1_6_10 <- quantile(outputArray$NumCases_Neonatal1_6_10,c(0.025,0.975))
+NumCases_Rotarix6_10    <- quantile(outputArray$NumCases_Rotarix6_10,c(0.025,0.975))
+NumCases_Rotarix6_10_14 <- quantile(outputArray$NumCases_Rotarix6_10_14,c(0.025,0.975))
+NumCases_Rotarix6_10_40 <- quantile(outputArray$NumCases_Rotarix6_10_40,c(0.025,0.975))
+MSCases_NoVac          <- quantile(outputArray$MSCases_NoVac,c(0.025,0.975))
+MSCases_Neonatal1_6_10 <- quantile(outputArray$MSCases_Neonatal1_6_10,c(0.025,0.975))
+MSCases_Rotarix6_10    <- quantile(outputArray$MSCases_Rotarix6_10,c(0.025,0.975))
+MSCases_Rotarix6_10_14 <- quantile(outputArray$MSCases_Rotarix6_10_14,c(0.025,0.975))
+MSCases_Rotarix6_10_40 <- quantile(outputArray$MSCases_Rotarix6_10_40,c(0.025,0.975))
+NSCases_NoVac          <- quantile(outputArray$NSCases_NoVac,c(0.025,0.975))
+NSCases_Neonatal1_6_10 <- quantile(outputArray$NSCases_Neonatal1_6_10,c(0.025,0.975))
+NSCases_Rotarix6_10    <- quantile(outputArray$NSCases_Rotarix6_10,c(0.025,0.975))
+NSCases_Rotarix6_10_14 <- quantile(outputArray$NSCases_Rotarix6_10_14,c(0.025,0.975))
+NSCases_Rotarix6_10_40 <- quantile(outputArray$NSCases_Rotarix6_10_40,c(0.025,0.975))
+NoVacHosp               <- quantile(outputArray$NoVacHosp,c(0.025,0.975))
+Neonatal1_6_10Hosp      <- quantile(outputArray$Neonatal1_6_10Hosp,c(0.025,0.975))
+Rotarix6_10Hosp         <- quantile(outputArray$Rotarix6_10Hosp,c(0.025,0.975))
+Rotarix6_10_14Hosp      <- quantile(outputArray$Rotarix6_10_14Hosp,c(0.025,0.975))
+Rotarix6_10_40Hosp      <- quantile(outputArray$Rotarix6_10_40Hosp,c(0.025,0.975))
+NoVacDALYs              <- quantile(outputArray$NoVacDALYs,c(0.025,0.975))
+Neonatal1_6_10DALYs     <- quantile(outputArray$Neonatal1_6_10DALYs,c(0.025,0.975))
+Rotarix6_10DALYs        <- quantile(outputArray$Rotarix6_10DALYs,c(0.025,0.975))
+Rotarix6_10_14DALYs     <- quantile(outputArray$Rotarix6_10_14DALYs,c(0.025,0.975))
+Rotarix6_10_40DALYs     <- quantile(outputArray$Rotarix6_10_40DALYs,c(0.025,0.975))
+NoVacDeaths             <- quantile(outputArray$NoVacDeaths,c(0.025,0.975))
+Neonatal1_6_10Deaths    <- quantile(outputArray$Neonatal1_6_10Deaths,c(0.025,0.975))
+Rotarix6_10Deaths       <- quantile(outputArray$Rotarix6_10Deaths,c(0.025,0.975))
+Rotarix6_10_14Deaths    <- quantile(outputArray$Rotarix6_10_14Deaths,c(0.025,0.975))
+Rotarix6_10_40Deaths    <- quantile(outputArray$Rotarix6_10_40Deaths,c(0.025,0.975))
+
+
+#dalys
+DALYs_NoVac          <- quantile(outputArray$NoVacDALYs,c(0.025,0.975))
+DALYs_Rotarix6_10    <- quantile(outputArray$Rotarix6_10DALYs,c(0.025,0.975))
+DALYs_Rotarix6_10_14 <- quantile(outputArray$Rotarix6_10_14DALYs,c(0.025,0.975))
+DALYs_Rotarix6_10_40 <- quantile(outputArray$Rotarix6_10_40DALYs,c(0.025,0.975))
+DALYs_Neonatal1_6_10 <- quantile(outputArray$Neonatal1_6_10DALYs,c(0.025,0.975))
+
+#cost difference
+costDiffNoVac   <- TotCost_NoVac - TotCost_Rotarix6_10
+costDiff6_10_14 <- TotCost_Rotarix6_10_14 - TotCost_Rotarix6_10
+costDiff6_10_40 <- TotCost_Rotarix6_10_40 - TotCost_Rotarix6_10
+costDiff1_6_10  <- TotCost_Neonatal1_6_10 - TotCost_Rotarix6_10
+
+#average outcomes averted
+CasesavNV   <- quantile(outputArray$CasesAverted_NoVac,c(0.025,0.975))
+Casesav14   <- quantile(outputArray$CasesAverted_Rotarix6_10_14,c(0.025,0.975))
+Casesav40   <- quantile(outputArray$CasesAverted_Rotarix6_10_40,c(0.025,0.975))
+CasesavN10  <- quantile(outputArray$CasesAverted_Neonatal1_6_10,c(0.025,0.975))
+HospsavNV   <- quantile(outputArray$HospAverted_NoVac,c(0.025,0.975))
+Hospsav14   <- quantile(outputArray$HospAverted_Rotarix6_10_14,c(0.025,0.975))
+Hospsav40   <- quantile(outputArray$HospAverted_Rotarix6_10_40,c(0.025,0.975))
+HospsavN10  <- quantile(outputArray$HospAverted_Neonatal1_6_10,c(0.025,0.975))
+DALYsavNV   <- quantile(outputArray$DALYsAverted_NoVac,c(0.025,0.975))
+DALYsav14   <- quantile(outputArray$DALYsAverted_Rotarix6_10_14,c(0.025,0.975))
+DALYsav40   <- quantile(outputArray$DALYsAverted_Rotarix6_10_40,c(0.025,0.975))
+DALYsavN10  <- quantile(outputArray$DALYsAverted_Neonatal1_6_10,c(0.025,0.975))
+DeathsavNV  <- quantile(outputArray$DeathsAverted_NoVac,c(0.025,0.975))
+Deathsav14  <- quantile(outputArray$DeathsAverted_Rotarix6_10_14,c(0.025,0.975))
+Deathsav40  <- quantile(outputArray$DeathsAverted_Rotarix6_10_40,c(0.025,0.975))
+DeathsavN10 <- quantile(outputArray$DeathsAverted_Neonatal1_6_10,c(0.025,0.975))
+#costs per outcome averted
+costCaseAvNV        <- costDiffNoVac/CasesavNV
+costCaseAv6_10_14   <- costDiff6_10_14/Casesav14
+costCaseAv6_10_40   <- costDiff6_10_40/Casesav40
+costCaseAv1_6_10    <- costDiff1_6_10/CasesavN10
+costHospAvNV        <- costDiffNoVac/HospsavNV
+costHospAv6_10_14   <- costDiff6_10_14/Hospsav14
+costHospAv6_10_40   <- costDiff6_10_40/Hospsav40
+costHospAv1_6_10    <- costDiff1_6_10/HospsavN10
+costDALYAvNV        <- costDiffNoVac/DALYsavNV
+costDALYAv6_10_14   <- costDiff6_10_14/DALYsav14
+costDALYAv6_10_40   <- costDiff6_10_40/DALYsav40
+costDALYAv1_6_10    <- costDiff1_6_10/DALYsavN10
+costDeathAvNV       <- costDiffNoVac/DeathsavNV
+costDeathAv6_10_14  <- costDiff6_10_14/Deathsav14
+costDeathAv6_10_40  <- costDiff6_10_40/Deathsav40
+costDeathAv1_6_10   <- costDiff1_6_10/DeathsavN10
+
+ICERatio_Neonatal1_6_10 <- quantile(outputArray$ICERatio_Neonatal1_6_10,c(0.025,0.975))
+ICERatio_Rotarix6_10    <- quantile(outputArray$ICERatio_Rotarix6_10,c(0.025,0.975))
+ICERatio_Rotarix6_10_14 <- quantile(outputArray$ICERatio_Rotarix6_10_14,c(0.025,0.975))
+ICERatio_Rotarix6_10_40 <- quantile(outputArray$ICERatio_Rotarix6_10_40,c(0.025,0.975))
+
+#outcome numbers
+NumCases_NoVac 
+NumCases_Neonatal1_6_10 
+NumCases_Rotarix6_10
+NumCases_Rotarix6_10_14
+NumCases_Rotarix6_10_40
+MSCases_NoVac 
+MSCases_Neonatal1_6_10 
+MSCases_Rotarix6_10
+MSCases_Rotarix6_10_14
+MSCases_Rotarix6_10_40
+NSCases_NoVac 
+NSCases_Neonatal1_6_10 
+NSCases_Rotarix6_10
+NSCases_Rotarix6_10_14
+NSCases_Rotarix6_10_40
+NoVacHosp 
+Neonatal1_6_10Hosp
+Rotarix6_10Hosp 
+Rotarix6_10_14Hosp
+Rotarix6_10_40Hosp
+NoVacDALYs
+Neonatal1_6_10DALYs
+Rotarix6_10DALYs
+Rotarix6_10_14DALYs
+Rotarix6_10_40DALYs
+NoVacDeaths
+Neonatal1_6_10Deaths
+Rotarix6_10Deaths
+Rotarix6_10_14Deaths
+Rotarix6_10_40Deaths
+#dalys
+DALYs_NoVac
+DALYs_Rotarix6_10   
+DALYs_Rotarix6_10_14
+DALYs_Rotarix6_10_40
+DALYs_Neonatal1_6_10
+```

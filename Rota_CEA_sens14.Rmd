@@ -20,7 +20,7 @@ library(ggplot2)
 ```
 #Import TDM simulation data
 ```{r, warning=FALSE}
-### Import disease data step removed for brevity
+load("TDMdata.Rdata")
 ```
 
 ## Simulation
@@ -356,17 +356,8 @@ sensdf1 <- data.frame(sens_price,Prob_NB_Sens_Rotarix6_10_14,Prob_NB_Sens_Neonat
 #at 645 GDP per capita, what is the optimal strategy given different RV3 prices?
 
 ggplot(sensdf1,mapping = aes(x=sens_price,Prob_NB_Sens_Rotarix6_10_14)) + geom_smooth(sensdf1,mapping = aes(x=sens_price,y=Prob_NB_Sens_Rotarix6_10_14),color="#006BA4FF") + geom_smooth(sensdf1,mapping = aes(x=sens_price,y=Prob_NB_Sens_Neonatal1_6_10),color="#FF800EFF") +ggtitle("Sensitivity Analysis of RV3 Price", subtitle="Comapred to Rotarix 6/10/14, Government Perspective") + xlab("Per Dose Price of RV3 ($)") + ylab("P(Preferred Strategy)") + theme(axis.text.x = element_text(face="bold", size=12), axis.text.y = element_text(face="bold", size=12)) + scale_y_continuous(breaks=seq(0,1,0.2))
-ggsave("sensitivity14P_10.png", path ="/Users/catherinewenger/Desktop/Rota CEA Manuscript/FiguresFin/Sens14")
+ggsave("sensitivity14P_10.png", path ="~")
 
-#Graph without smoothing
-# png('/Users/catherinewenger/Desktop/Thesis/Drafts/FinalDraft/FiguresFin & Tables/Sensitivity/sensitivity14P.png')
-# plot(sens_price, Prob_NB_Sens_Rotarix6_10_14, type= "l", col='blue', ylab="Probability highest NB",xlab="Price of RV3",
-#     main="Sensitivity Analysis of RV3 Price",sub="Comapred to Rotarix 6/10/14, Payer Perspective",ylim=c(0,1))
-# lines(sens_price, Prob_NB_Sens_Neonatal1_6_10, col='maroon')
-# legend("topright",legend=c("Rotarix6_10_14","Neonatal1_6_10"),
-#       col=c("blue","maroon"),
-#       lty=1, ncol=1, cex =.7, pt.cex = 1)
-# dev.off()
 
 max(sensdf1$sens_price[Prob_NB_Sens_Rotarix6_10_14<Prob_NB_Sens_Neonatal1_6_10])
 
