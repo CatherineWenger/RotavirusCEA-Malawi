@@ -1,0 +1,750 @@
+---
+title: "Rota_CEA_Case_2"
+author: "Catherine Wenger"
+date: "2024-03-09"
+output: html_document
+---
+
+# Case 2 Description 
+No vaccine (BL) / 6-10 / 6-10-14 / 6-10-40
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(insight)
+library(openxlsx)
+library(geomtextpath)
+library(gghighlight)
+library(gt)
+library(ggplot2)
+library(scales)
+```
+
+## Simulation
+
+```{r}
+# Run model 1000 times with different parameter estimates 
+nsim <- 1000 
+
+# set array 
+column.names <- c("NumCases_NoVac","NumCases_Rotarix6_10","NumCases_Rotarix6_10_14","NumCases_Rotarix6_10_40",
+                  "NoVacHosp", "Rotarix6_10Hosp","Rotarix6_10_14Hosp","Rotarix6_10_40Hosp",
+                  "NoVacDeaths", "Rotarix6_10Deaths","Rotarix6_10_14Deaths","Rotarix6_10_40Deaths",
+                  "NoVacCost", "Rotarix6_10Cost","Rotarix6_10_14Cost","Rotarix6_10_40Cost",
+                  "NoVacCostInt","Rotarix6_10CostInt","Rotarix6_10_14CostInt","Rotarix6_10_40CostInt",
+                  "NoVacCostTrt","Rotarix6_10CostTrt","Rotarix6_10_14CostTrt","Rotarix6_10_40CostTrt",
+                  "NoVacDALYs","Rotarix6_10DALYs","Rotarix6_10_14DALYs","Rotarix6_10_40DALYs") 
+matrix.names <- c(1:10)
+row.names <- c(1:nsim)
+yearData <-array(rep(1, nsim*28*10),dim=c(nsim,28,10),
+              dimnames = list(row.names,column.names,matrix.names))
+
+params <-array(rep(1, nsim*19),dim=c(nsim,19))
+colnames(params)<- c("pr_seek","pr_no_treat","pr_inpat","pr_outpat_MS","pr_outpat_NS",
+                     "pr_no_treat_NS","pr_death_inpat","pr_death_outpat","pr_death_notreat",
+                     "cost_vacc_Rotarix6_10","cost_vacc_Rotarix6_10_14","cost_vacc_Rotarix6_10_40",
+                     "delRotarix","cost_in_trt","cost_out_trt_NS","cost_out_trt_MS",
+                     "daly_wt_NS","daly_wt_MS","dur_inf") 
+params <- as.data.frame(params)
+
+outputArray <-array(rep(1, nsim*46),dim=c(nsim,46))
+colnames(outputArray)<- c("NumCases_NoVac","NumCases_Rotarix6_10",
+                          "NumCases_Rotarix6_10_14","NumCases_Rotarix6_10_40",
+                          "NoVacHosp", "Rotarix6_10Hosp","Rotarix6_10_14Hosp",
+                          "Rotarix6_10_40Hosp",
+                          "NoVacDeaths", "Rotarix6_10Deaths","Rotarix6_10_14Deaths",
+                          "Rotarix6_10_40Deaths",
+                          "CasesAverted_Rotarix6_10","HospAverted_Rotarix6_10",
+                          "DeathsAverted_Rotarix6_10",
+                          "CasesAverted_Rotarix6_10_14","HospAverted_Rotarix6_10_14",
+                          "DeathsAverted_Rotarix6_10_14",
+                          "CasesAverted_Rotarix6_10_40","HospAverted_Rotarix6_10_40",
+                          "DeathsAverted_Rotarix6_10_40",
+                          "NoVacCost", "Rotarix6_10Cost","Rotarix6_10_14Cost",
+                          "Rotarix6_10_40Cost",
+                          "NoVacCostInt","Rotarix6_10CostInt","Rotarix6_10_14CostInt",
+                          "Rotarix6_10_40CostInt",
+                          "NoVacCostTrt","Rotarix6_10CostTrt","Rotarix6_10_14CostTrt",
+                          "Rotarix6_10_40CostTrt",
+                          "NoVacDALYs","Rotarix6_10DALYs","Rotarix6_10_14DALYs",
+                          "Rotarix6_10_40DALYs",
+                          "CERatioY_NoVac","CERatioY_Rotarix6_10_14",
+                          "CERatioY_Rotarix6_10_40",
+                          "CERatioX_NoVac","CERatioX_Rotarix6_10_14",
+                          "CERatioX_Rotarix6_10_40",
+                          "ICERatio_Rotarix6_10","ICERatio_Rotarix6_10_14",
+                          "ICERatio_Rotarix6_10_40") 
+outputArray <- as.data.frame(outputArray)
+```
+
+
+#Import TDM simulation data
+```{r, warning=FALSE}
+load("TDMdata.Rdata")
+Yr0MSNoVac <- TDMdata[["Yr0MSNoVac"]]
+    Yr0NSNoVac <- TDMdata[["Yr0NSNoVac"]]
+    Yr1MSNoVac <- TDMdata[["Yr1MSNoVac"]]
+    Yr1NSNoVac <- TDMdata[["Yr1NSNoVac"]]
+    Yr2MSNoVac <- TDMdata[["Yr2MSNoVac"]]
+    Yr2NSNoVac <- TDMdata[["Yr2NSNoVac"]]
+    Yr3MSNoVac <- TDMdata[["Yr3MSNoVac"]]
+    Yr3NSNoVac <- TDMdata[["Yr3NSNoVac"]]
+    Yr4MSNoVac <- TDMdata[["Yr4MSNoVac"]]
+    Yr4NSNoVac <- TDMdata[["Yr4NSNoVac"]]
+    
+    Yr0MS6_10 <- TDMdata[["Yr0MS6_10"]]
+    Yr0NS6_10 <- TDMdata[["Yr0NS6_10"]]
+    Yr1MS6_10 <- TDMdata[["Yr1MS6_10"]]
+    Yr1NS6_10 <- TDMdata[["Yr1NS6_10"]]
+    Yr2MS6_10 <- TDMdata[["Yr2MS6_10"]]
+    Yr2NS6_10 <- TDMdata[["Yr2NS6_10"]]
+    Yr3MS6_10 <- TDMdata[["Yr3MS6_10"]]
+    Yr3NS6_10 <- TDMdata[["Yr3NS6_10"]]
+    Yr4MS6_10 <- TDMdata[["Yr4MS6_10"]]
+    Yr4NS6_10 <- TDMdata[["Yr4NS6_10"]]
+    NumDoses6_10 <- TDMdata[["NumDoses6_10"]]
+    
+    Yr0MS6_10_14 <- TDMdata[["Yr0MS6_10_14"]]
+    Yr0NS6_10_14 <- TDMdata[["Yr0NS6_10_14"]]
+    Yr1MS6_10_14 <- TDMdata[["Yr1MS6_10_14"]]
+    Yr1NS6_10_14 <- TDMdata[["Yr1NS6_10_14"]]
+    Yr2MS6_10_14 <- TDMdata[["Yr2MS6_10_14"]]
+    Yr2NS6_10_14 <- TDMdata[["Yr2NS6_10_14"]]
+    Yr3MS6_10_14 <- TDMdata[["Yr3MS6_10_14"]]
+    Yr3NS6_10_14 <- TDMdata[["Yr3NS6_10_14"]]
+    Yr4MS6_10_14 <- TDMdata[["Yr4MS6_10_14"]]
+    Yr4NS6_10_14 <- TDMdata[["Yr4NS6_10_14"]]
+    NumDoses6_10_14 <- TDMdata[["NumDoses6_10_14"]]
+    
+    Yr0MS6_10_40 <- TDMdata[["Yr0MS6_10_40"]]
+    Yr0NS6_10_40 <- TDMdata[["Yr0NS6_10_40"]]
+    Yr1MS6_10_40 <- TDMdata[["Yr1MS6_10_40"]]
+    Yr1NS6_10_40 <- TDMdata[["Yr1NS6_10_40"]]
+    Yr2MS6_10_40 <- TDMdata[["Yr2MS6_10_40"]]
+    Yr2NS6_10_40 <- TDMdata[["Yr2NS6_10_40"]]
+    Yr3MS6_10_40 <- TDMdata[["Yr3MS6_10_40"]]
+    Yr3NS6_10_40 <- TDMdata[["Yr3NS6_10_40"]]
+    Yr4MS6_10_40 <- TDMdata[["Yr4MS6_10_40"]]
+    Yr4NS6_10_40 <- TDMdata[["Yr4NS6_10_40"]]
+    NumDoses6_10_40 <- TDMdata[["NumDoses6_10_40"]]
+```
+
+```{r}
+for(i in 1:1000){
+  set.seed(1+i)
+### TDM outputs ###
+  #Moderate-Severe Cases
+  #Moderate-Severe Cases
+  MSCases_NoVac =           as.numeric(Yr0MSNoVac[i,]+Yr1MSNoVac[i,]+Yr2MSNoVac[i,]+Yr3MSNoVac[i,]+Yr4MSNoVac[i,])
+  MSCases_Rotarix6_10 =     as.numeric(Yr0MS6_10[i,]+Yr1MS6_10[i,]+Yr2MS6_10[i,]+Yr3MS6_10[i,]+Yr4MS6_10[i,])
+  MSCases_Rotarix6_10_14 =  as.numeric(Yr0MS6_10_14[i,]+Yr1MS6_10_14[i,]+Yr2MS6_10_14[i,]+Yr3MS6_10_14[i,]+Yr4MS6_10_14[i,])
+  MSCases_Rotarix6_10_40 =  as.numeric(Yr0MS6_10_40[i,]+Yr1MS6_10_40[i,]+Yr2MS6_10_40[i,]+Yr3MS6_10_40[i,]+Yr4MS6_10_40[i,])
+  
+  #Non-Severe Cases
+  NSCases_NoVac =           as.numeric(Yr0NSNoVac[i,]+Yr1NSNoVac[i,]+Yr2NSNoVac[i,]+Yr3NSNoVac[i,]+Yr4NSNoVac[i,])
+  NSCases_Rotarix6_10 =     as.numeric(Yr0NS6_10[i,]+Yr1NS6_10[i,]+Yr2NS6_10[i,]+Yr3NS6_10[i,]+Yr4NS6_10[i,])
+  NSCases_Rotarix6_10_14 =  as.numeric(Yr0NS6_10_14[i,]+Yr1NS6_10_14[i,]+Yr2NS6_10_14[i,]+Yr3NS6_10_14[i,]+Yr4NS6_10_14[i,])
+  NSCases_Rotarix6_10_40 =  as.numeric(Yr0NS6_10_40[i,]+Yr1NS6_10_40[i,]+Yr2NS6_10_40[i,]+Yr3NS6_10_40[i,]+Yr4NS6_10_40[i,])
+  
+  #Vax doses
+  NumDoses_Rotarix6_10 =    as.numeric(NumDoses6_10[i,])
+  NumDoses_Rotarix6_10_14 = as.numeric(NumDoses6_10_14[i,])
+  NumDoses_Rotarix6_10_40 = as.numeric(NumDoses6_10_40[i,])
+  
+### Uncertainty Parameters ###
+  pr_seek =  rbeta(1,2600.06,650.01) # P of seeking treatment
+  pr_no_treat =	1-pr_seek            # P of no treatment
+  
+  pr_inpat = rbeta(1,1432.08,954.72) # P of inpatient (hospitalization)
+  pr_outpat_MS = 1-pr_inpat          # P of outpatient treatment 
+
+  pr_outpat_NS = rbeta(1,832.82,681.39) # P of outpatient treatment for nonsevere disease
+  pr_no_treat_NS = 1-pr_outpat_NS       # P of no treatment for nonsevere disease
+  
+  life_exp = 63
+  
+  # CFR: Case Fatality Rate
+  pr_death_inpat = rbeta(1,6.74,606.29)         # CFR for inpatients 
+  pr_death_outpat =	runif(1,0,1)*pr_death_inpat # CFR for outpatients
+  pr_death_notreat =	rbeta(1,6.63,258.72)      # CFR for those who don't seek treatment
+ 
+  # Costs
+  wastage = 0.05
+  delRotarix = 0.58     # Delivery cost
+  costRotarix = 1.94    # without GAVI 5.65
+  cost_vacc_Rotarix6_10 = costRotarix + delRotarix        # Rotarix6_10 vaccine costs per dose
+  cost_vacc_Rotarix6_10_14 = costRotarix + delRotarix     # Rotarix6_10 vaccine costs per dose
+  cost_vacc_Rotarix6_10_40 = costRotarix + delRotarix     # Rotarix6_10_40 vaccine costs per dose
+  
+  # Cost of treatment (Government perspective)
+  cost_out_trt_NS =         rgamma(1,7.56,scale=1.47)     # outpatient treatment costs nonsevere
+  cost_in_trt =             rgamma(1,1.39,scale=43.54)    # inpatient treatment costs 
+  cost_out_trt_MS =         rgamma(1,15.18,scale=1.46)    # outpatient treatment costs moderate-severe 
+  
+  ## Uncomment to run societal perspective
+  # # Cost of treatment (Societal)
+  # cost_out_trt_NS =         rgamma(1,7.56,scale=1.47) + rgamma(1,0.24,scale=2.87)      # outpatient treatment costs nonsevere
+  # cost_in_trt =             rgamma(1,1.39,scale=43.54) + rgamma(1,0.81,scale=18.76)    # inpatient treatment costs
+  # cost_out_trt_MS =         rgamma(1,15.18,scale=1.46) + rgamma(1,0.79,scale=11.94)   # outpatient treatment costs moderate-severe
+
+
+  #DALYs
+  daly_wt_NS = runif(1,0.133,0.299) # DALY weight nonsevere
+  daly_wt_MS = runif(1,0.184,0.399) # DALY weight moderate-severe
+  dur_inf = 6/365                   # duration of illness
+  
+  discount = 0.03 # discounting rate
+  
+  #Store parameters in params
+  params$pr_seek[i] =                  pr_seek
+  params$pr_no_treat[i] =              pr_no_treat
+  params$pr_inpat[i] =                 pr_inpat
+  params$pr_outpat_MS[i] =             pr_outpat_MS
+  params$pr_outpat_NS[i] =             pr_outpat_NS
+  params$pr_no_treat_NS[i] =           pr_no_treat_NS
+  params$pr_death_inpat[i] =           pr_death_inpat
+  params$pr_death_outpat[i] =          pr_death_outpat
+  params$pr_death_notreat[i] =         pr_death_notreat
+  params$delRotarix[i] =               delRotarix
+  params$cost_vacc_Rotarix6_10[i] =    cost_vacc_Rotarix6_10
+  params$cost_vacc_Rotarix6_10_14[i] = cost_vacc_Rotarix6_10_14
+  params$cost_vacc_Rotarix6_10_40[i] = cost_vacc_Rotarix6_10_40
+  params$cost_vacc_Neonatal1_6_10[i] = cost_vacc_Neonatal1_6_10
+  params$cost_in_trt[i] =              cost_in_trt
+  params$cost_out_trt_NS[i] =          cost_out_trt_NS
+  params$cost_out_trt_MS[i] =          cost_out_trt_MS
+  params$daly_wt_NS[i] =               daly_wt_NS
+  params$daly_wt_MS[i] =               daly_wt_MS
+  params$dur_inf[i] =                  dur_inf
+  
+  
+#### No vaccination ####
+for (j in 1:10){
+# Save the output for simulation i
+  # nonsevere cases + severe cases
+  yearData[i,"NumCases_NoVac",j] <- NSCases_NoVac[j] + MSCases_NoVac[j]      
+  # P of seeking care * P of inpatient treatment * number M/S cases
+  yearData[i,"NoVacHosp",j]      <- pr_seek*pr_inpat*MSCases_NoVac[j]      
+  # ( P of seeking care * P of inpatient treatment * P of inpatient death
+  # P of seeking care * P of outpatient treatment * P of outpatient death
+  # P of no treatment * P of death on no treatment ) * number M/S cases
+  yearData[i,"NoVacDeaths",j]    <- (pr_seek*pr_inpat*pr_death_inpat +            
+                                   pr_seek*pr_outpat_MS*pr_death_outpat +         
+                                   pr_no_treat*pr_death_notreat)*MSCases_NoVac[j] 
+
+# Calculate Total Cost
+  yearData[i,"NoVacCostInt",j] = 0
+  # cost of inpatient treatment * number of hospitalizations
+  # + mod/sev cost of outpatient treatment * number outpatient treated 
+  # + nonsevere cost of outpatient treatment * number outpatient treated / discount rate
+  yearData[i,"NoVacCostTrt",j] = (cost_in_trt*yearData[i,"NoVacHosp",j] +                  
+                                 (cost_out_trt_MS*pr_seek*pr_outpat_MS)*MSCases_NoVac[j] + 
+                                 (cost_out_trt_NS*pr_outpat_NS)*NSCases_NoVac[j])/((1+discount)^(j-1))
+  yearData[i,"NoVacCost",j] =    (yearData[i,"NoVacCostTrt",j] + yearData[i,"NoVacCostInt",j])
+  
+# DALYs for No Vacc
+  # (Number nonsevere cases * duration of infection * DALY weight for nonsevere cases
+  # + Number mod/sev cases * duration of infection * DALY weight for mod/sev cases
+  # + ( P of inpatient death + P of outpatient death + P of no treatment (death stratified by age))
+  # * incidence * life expectancy) / discounting rate
+  yearData[i,"NoVacDALYs",j] = (NSCases_NoVac[j]*dur_inf*daly_wt_NS +
+                              MSCases_NoVac[j]*dur_inf*daly_wt_MS +
+                              (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                              pr_no_treat*pr_death_notreat) *(Yr0MSNoVac[i,j]*(29.96876412))+
+                              (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                              pr_no_treat*pr_death_notreat)*(Yr1MSNoVac[i,j]*(29.8134343))+
+                              (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                              pr_no_treat*pr_death_notreat)*(Yr2MSNoVac[i,j]*(29.65344459))+
+                              (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                              pr_no_treat*pr_death_notreat)*(Yr3MSNoVac[i,j]*(29.48865518))+
+                              (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                              pr_no_treat*pr_death_notreat)*(Yr4MSNoVac[i,j]*(29.31892209))) /((1+discount)^(j-1))
+  
+#### Rotarix6_10 Vaccination ####
+# Save the output for simulation i
+  # nonsevere cases + severe cases
+  yearData[i,"NumCases_Rotarix6_10",j] <- NSCases_Rotarix6_10[j] + MSCases_Rotarix6_10[j]
+  # P of seeking care * P of inpatient treatment * number M/S cases
+  yearData[i,"Rotarix6_10Hosp",j]      <- pr_seek*pr_inpat*MSCases_Rotarix6_10[j]  
+  # ( P of seeking care * P of inpatient treatment * P of inpatient death
+  # P of seeking care * P of outpatient treatment * P of outpatient death
+  # P of no treatment * P of death on no treatment ) * number M/S cases
+  yearData[i,"Rotarix6_10Deaths",j]    <- (pr_seek*pr_inpat*pr_death_inpat +                  
+                                         pr_seek*pr_outpat_MS*pr_death_outpat +               
+                                         (1-pr_seek)*pr_death_notreat)*MSCases_Rotarix6_10[j] 
+# Calculate Cost
+  # (Cost of 1 dose * number of doses administered + Vaccine Wastage) / discounting rate
+  yearData[i,"Rotarix6_10CostInt",j] =  (cost_vacc_Rotarix6_10*NumDoses_Rotarix6_10[j]                
+                                       +(wastage*costRotarix*NumDoses_Rotarix6_10[j]))/((1+discount)^(j-1))
+  # cost of inpatient treatment * number of hospitalizations
+  # + MS cost of outpatient treatment * n outpatient treated 
+  # + NS cost of outpatient treatment * n outpatient treated / discounting rate
+  yearData[i,"Rotarix6_10CostTrt",j] = (cost_in_trt*yearData[i,"Rotarix6_10Hosp",j] +                
+                                      cost_out_trt_MS*pr_seek*pr_outpat_MS*MSCases_Rotarix6_10[j] + 
+                                      cost_out_trt_NS*pr_outpat_NS*NSCases_Rotarix6_10[j])/((1+discount)^(j-1))
+  yearData[i,"Rotarix6_10Cost",j] =   (yearData[i,"Rotarix6_10CostInt",j] + yearData[i,"Rotarix6_10CostTrt",j])
+  
+# DALYs for Rotarix6_10
+  # (Number nonsevere cases * duration of infection * DALY weight for nonsevere cases
+  # + Number mod/sev cases * duration of infection * DALY weight for mod/sev cases
+  # + ( P of inpatient death + P of outpatient death + P of no treatment (death stratified by age))
+  # * incidence * life expectancy) / discounting rate
+  yearData[i,"Rotarix6_10DALYs",j] = (NSCases_Rotarix6_10[j]*dur_inf*daly_wt_NS +
+                                      MSCases_Rotarix6_10[j]*dur_inf*daly_wt_MS + 
+                                      (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                      pr_no_treat*pr_death_notreat)*(Yr0MS6_10[i,j]*(29.96876412))+
+                                      (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                      pr_no_treat*pr_death_notreat)*(Yr1MS6_10[i,j]*(29.8134343))+
+                                      (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                      pr_no_treat*pr_death_notreat)*(Yr2MS6_10[i,j]*(29.65344459))+
+                                      (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                      pr_no_treat*pr_death_notreat)*(Yr3MS6_10[i,j]*(29.48865518))+
+                                      (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                      pr_no_treat*pr_death_notreat)*(Yr4MS6_10[i,j]*(29.31892209))) /((1+discount)^(j-1))
+  
+#### Rotarix6_10_14 Vaccination ####
+# Save the output for simulation i
+  # nonsevere cases + severe cases
+  yearData[i,"NumCases_Rotarix6_10_14",j] <- NSCases_Rotarix6_10_14[j] + MSCases_Rotarix6_10_14[j] 
+  # P of seeking care * P of inpatient treatment * number M/S cases
+  yearData[i,"Rotarix6_10_14Hosp",j]      <- pr_seek*pr_inpat*MSCases_Rotarix6_10_14[j] 
+  # ( P seeking care * P inpatient treatment * P inpatient death
+  # P seeking care * P outpatient treatment * P outpatient death
+  # P no treatment * P death on no treatment ) * number M/S cases
+  yearData[i,"Rotarix6_10_14Deaths",j]    <- (pr_seek*pr_inpat*pr_death_inpat +                    
+                                            pr_seek*pr_outpat_MS*pr_death_outpat +                 
+                                            (1-pr_seek)*pr_death_notreat)*MSCases_Rotarix6_10_14[j]  
+  
+# Calculate Cost
+  # (Cost of 1 dose * number of doses administered + Vaccine wastage) / discounting rate
+  yearData[i,"Rotarix6_10_14CostInt",j] = (cost_vacc_Rotarix6_10_14*NumDoses_Rotarix6_10_14[j]              
+                                          +(wastage*costRotarix*NumDoses_Rotarix6_10_14[j]))/((1+discount)^(j-1))
+  # cost of inpatient treatment * number of hospitalizations
+  # + MS cost of outpatient treatment * n outpatient treated 
+  # + NS cost of outpatient treatment * n outpatient treated          
+  yearData[i,"Rotarix6_10_14CostTrt",j] = (cost_in_trt*yearData[i,"Rotarix6_10_14Hosp",j] +                 
+                                          cost_out_trt_MS*pr_seek*pr_outpat_MS*MSCases_Rotarix6_10_14[j] + 
+                                          cost_out_trt_NS*pr_outpat_NS*NSCases_Rotarix6_10_14[j])/((1+discount)^(j-1))
+  yearData[i,"Rotarix6_10_14Cost",j] =    (yearData[i,"Rotarix6_10_14CostInt",j] + yearData[i,"Rotarix6_10_14CostTrt",j])
+  
+# DALYs for Rotarix6_10_14
+  # (Number nonsevere cases * duration of infection * DALY weight for nonsevere cases
+  # + Number mod/sev cases * duration of infection * DALY weight for mod/sev cases
+  # + ( P of inpatient death + P of outpatient death + P of no treatment (death stratified by age))
+  # * incidence * life expectancy) / discounting rate
+  yearData[i,"Rotarix6_10_14DALYs",j] =  (NSCases_Rotarix6_10_14[j]*dur_inf*daly_wt_NS +
+                                        MSCases_Rotarix6_10_14[j]*dur_inf*daly_wt_MS +
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr0MS6_10_14[i,j]*(29.96876412))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr1MS6_10_14[i,j]*(29.8134343))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr2MS6_10_14[i,j]*(29.65344459))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr3MS6_10_14[i,j]*(29.48865518))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr4MS6_10_14[i,j]*(29.31892209))) /((1+discount)^(j-1))
+ 
+#### Rotarix6_10_40 Vaccination ####
+# Save the output for simulation i
+  # nonsevere cases + severe cases
+  yearData[i,"NumCases_Rotarix6_10_40",j] <- NSCases_Rotarix6_10_40[j] + MSCases_Rotarix6_10_40[j] 
+  # P of seeking care * P of inpatient treatment * number M/S cases
+  yearData[i,"Rotarix6_10_40Hosp",j]      <- pr_seek*pr_inpat*MSCases_Rotarix6_10_40[j]
+  # P seeking care * P inpatient treatment * P inpatient death +
+  # P seeking care * P outpatient treatment * P outpatient death +
+  # P no treatment * P death on no treatment ) * number M/S cases
+  yearData[i,"Rotarix6_10_40Deaths",j]    <- (pr_seek*pr_inpat*pr_death_inpat +                    
+                                            pr_seek*pr_outpat_MS*pr_death_outpat +                 
+                                            (1-pr_seek)*pr_death_notreat)*MSCases_Rotarix6_10_40[j]
+# Calculate Cost
+  # Cost of 1 dose * number of doses administered + Vaccine wastage / discounting rate
+  yearData[i,"Rotarix6_10_40CostInt",j] = (cost_vacc_Rotarix6_10_40*NumDoses_Rotarix6_10_40[j]             
+                                          +(wastage*costRotarix*NumDoses_Rotarix6_10_40[j]))/((1+discount)^(j-1))
+  # cost of inpatient treatment * n of hospitalizations
+  # + MS cost of outpatient treatment * n outpatient treated 
+  # + NS cost of outpatient treatment * n outpatient treated
+  yearData[i,"Rotarix6_10_40CostTrt",j] = (cost_in_trt*yearData[i,"Rotarix6_10_40Hosp",j] +                 
+                                          cost_out_trt_MS*pr_seek*pr_outpat_MS*MSCases_Rotarix6_10_40[j] +
+                                          cost_out_trt_NS*pr_outpat_NS*NSCases_Rotarix6_10_40[j])/((1+discount)^(j-1))
+  yearData[i,"Rotarix6_10_40Cost",j] =  (yearData[i,"Rotarix6_10_40CostInt",j] + yearData[i,"Rotarix6_10_40CostTrt",j])
+ 
+# DALYs for Rotarix6_10_40
+  # (Number nonsevere cases * duration of infection * DALY weight for nonsevere cases
+  # + Number mod/sev cases * duration of infection * DALY weight for mod/sev cases
+  # + ( P of inpatient death + P of outpatient death + P of no treatment (death stratified by age))
+  # * incidence * life expectancy) / discounting rate
+  yearData[i,"Rotarix6_10_40DALYs",j] =  (NSCases_Rotarix6_10_40[j]*dur_inf*daly_wt_NS +
+                                        MSCases_Rotarix6_10_40[j]*dur_inf*daly_wt_MS +
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr0MS6_10_40[i,j]*(29.96876412))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr1MS6_10_40[i,j]*(29.8134343))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr2MS6_10_40[i,j]*(29.65344459))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr3MS6_10_40[i,j]*(29.48865518))+
+                                        (pr_inpat*pr_death_inpat + pr_outpat_MS*pr_death_outpat +
+                                        pr_no_treat*pr_death_notreat)*(Yr4MS6_10_40[i,j]*(29.31892209))) /((1+discount)^(j-1))
+  }
+  
+  
+outputArray$NumCases_NoVac[i]          <- sum(yearData[i,"NumCases_NoVac",])
+outputArray$NumCases_Rotarix6_10[i]    <- sum(yearData[i,"NumCases_Rotarix6_10",])
+outputArray$NumCases_Rotarix6_10_14[i] <- sum(yearData[i,"NumCases_Rotarix6_10_14",])
+outputArray$NumCases_Rotarix6_10_40[i] <- sum(yearData[i,"NumCases_Rotarix6_10_40",])
+outputArray$NoVacHosp[i]               <- sum(yearData[i,"NoVacHosp",])
+outputArray$Rotarix6_10Hosp[i]         <- sum(yearData[i,"Rotarix6_10Hosp",])
+outputArray$Rotarix6_10_14Hosp[i]      <- sum(yearData[i,"Rotarix6_10_14Hosp",])
+outputArray$Rotarix6_10_40Hosp[i]      <- sum(yearData[i,"Rotarix6_10_40Hosp",])
+outputArray$NoVacDeaths[i]             <- sum(yearData[i,"NoVacDeaths",])
+outputArray$Rotarix6_10Deaths[i]       <- sum(yearData[i,"Rotarix6_10Deaths",])
+outputArray$Rotarix6_10_14Deaths[i]    <- sum(yearData[i,"Rotarix6_10_14Deaths",])
+outputArray$Rotarix6_10_40Deaths[i]    <- sum(yearData[i,"Rotarix6_10_40Deaths",])
+outputArray$NoVacCost[i]               <- sum(yearData[i,"NoVacCost",])
+outputArray$Rotarix6_10Cost[i]         <- sum(yearData[i,"Rotarix6_10Cost",])
+outputArray$Rotarix6_10_14Cost[i]      <- sum(yearData[i,"Rotarix6_10_14Cost",])
+outputArray$Rotarix6_10_40Cost[i]      <- sum(yearData[i,"Rotarix6_10_40Cost",])
+outputArray$NoVacCostInt[i]            <- sum(yearData[i,"NoVacCostInt",])
+outputArray$Rotarix6_10CostInt[i]      <- sum(yearData[i,"Rotarix6_10CostInt",])
+outputArray$Rotarix6_10_14CostInt[i]   <- sum(yearData[i,"Rotarix6_10_14CostInt",])
+outputArray$Rotarix6_10_40CostInt[i]   <- sum(yearData[i,"Rotarix6_10_40CostInt",])
+outputArray$NoVacCostTrt[i]            <- sum(yearData[i,"NoVacCostTrt",])
+outputArray$Rotarix6_10CostTrt[i]      <- sum(yearData[i,"Rotarix6_10CostTrt",])
+outputArray$Rotarix6_10_14CostTrt[i]   <- sum(yearData[i,"Rotarix6_10_14CostTrt",])
+outputArray$Rotarix6_10_40CostTrt[i]   <- sum(yearData[i,"Rotarix6_10_40CostTrt",])
+outputArray$NoVacDALYs[i]              <- sum(yearData[i,"NoVacDALYs",])
+outputArray$Rotarix6_10DALYs[i]        <- sum(yearData[i,"Rotarix6_10DALYs",])
+outputArray$Rotarix6_10_14DALYs[i]     <- sum(yearData[i,"Rotarix6_10_14DALYs",])
+outputArray$Rotarix6_10_40DALYs[i]     <- sum(yearData[i,"Rotarix6_10_40DALYs",])
+  
+# calculate CE Ratios - each strategy compared to 6/10 for plotting PSA in CEA Plane     
+  # outputArray$CERatioY_NoVac[i] =          (outputArray$NoVacCost[i]-outputArray$NoVacCost[i])
+  # outputArray$CERatioX_NoVac[i] =          (outputArray$NoVacDALYs[i]-outputArray$NoVacDALYs[i])
+  outputArray$CERatioY_Rotarix6_10[i] =    (outputArray$Rotarix6_10Cost[i]-outputArray$NoVacCost[i])
+  outputArray$CERatioX_Rotarix6_10[i] =    (outputArray$NoVacDALYs[i]-outputArray$Rotarix6_10DALYs[i])
+  outputArray$CERatioY_Rotarix6_10_14[i] = (outputArray$Rotarix6_10_14Cost[i]-outputArray$NoVacCost[i])
+  outputArray$CERatioX_Rotarix6_10_14[i] = (outputArray$NoVacDALYs[i]-outputArray$Rotarix6_10_14DALYs[i])
+  outputArray$CERatioY_Rotarix6_10_40[i] = (outputArray$Rotarix6_10_40Cost[i]-outputArray$NoVacCost[i])
+  outputArray$CERatioX_Rotarix6_10_40[i] = (outputArray$NoVacDALYs[i]-outputArray$Rotarix6_10_40DALYs[i])
+  
+  # Insert ICERs Here
+  outputArray$ICERatio_Rotarix6_10[i] =    (outputArray$Rotarix6_10Cost[i]-outputArray$NoVacCost[i])/
+                                           (outputArray$NoVacDALYs[i]-outputArray$Rotarix6_10DALYs[i])
+  outputArray$ICERatio_Rotarix6_10_14[i] = (outputArray$Rotarix6_10_14Cost[i]-outputArray$Rotarix6_10Cost[i])/
+                                           (outputArray$Rotarix6_10DALYs[i]-outputArray$Rotarix6_10_14DALYs[i])
+  outputArray$ICERatio_Rotarix6_10_40[i] = (outputArray$Rotarix6_10_40Cost[i]-outputArray$Rotarix6_10_14Cost[i])/
+                                           (outputArray$Rotarix6_10_14DALYs[i]-outputArray$Rotarix6_10_40DALYs[i])
+
+  }
+
+# Calculate Cases Averted, Hosp Averted, Deaths Averted
+# Nonsevere Cases
+MSCasesAverted_Rotarix6_10    <- NSCases_NoVac-NSCases_Rotarix6_10
+MSCasesAverted_Rotarix6_10_14 <- NSCases_NoVac-NSCases_Rotarix6_10_14
+MSCasesAverted_Rotarix6_10_40 <- NSCases_NoVac-NSCases_Rotarix6_10_40
+# Moderate-Severe Cases
+NSCasesAverted_Rotarix6_10    <- MSCases_NoVac-MSCases_Rotarix6_10
+NSCasesAverted_Rotarix6_10_14 <- MSCases_NoVac-MSCases_Rotarix6_10_14
+NSCasesAverted_Rotarix6_10_40 <- MSCases_NoVac-MSCases_Rotarix6_10_40
+
+# Total Cases
+outputArray$CasesAverted_Rotarix6_10    <- outputArray$NumCases_NoVac - outputArray$NumCases_Rotarix6_10
+outputArray$CasesAverted_Rotarix6_10_14 <- outputArray$NumCases_NoVac-outputArray$NumCases_Rotarix6_10_14
+outputArray$CasesAverted_Rotarix6_10_40 <- outputArray$NumCases_NoVac-outputArray$NumCases_Rotarix6_10_40
+
+outputArray$HospAverted_Rotarix6_10     <- outputArray$NoVacHosp - outputArray$Rotarix6_10Hosp
+outputArray$HospAverted_Rotarix6_10_14  <- outputArray$NoVacHosp - outputArray$Rotarix6_10_14Hosp
+outputArray$HospAverted_Rotarix6_10_40  <- outputArray$NoVacHosp - outputArray$Rotarix6_10_40Hosp
+
+outputArray$DeathsAverted_Rotarix6_10    <- outputArray$NoVacDeaths - outputArray$Rotarix6_10Deaths
+outputArray$DeathsAverted_Rotarix6_10_14 <- outputArray$NoVacDeaths - outputArray$Rotarix6_10_14Deaths
+outputArray$DeathsAverted_Rotarix6_10_40 <- outputArray$NoVacDeaths - outputArray$Rotarix6_10_40Deaths
+
+outputArray$DALYsAverted_Rotarix6_10    <- outputArray$NoVacDALYs - outputArray$Rotarix6_10DALYs
+outputArray$DALYsAverted_Rotarix6_10_14 <- outputArray$NoVacDALYs - outputArray$Rotarix6_10_14DALYs
+outputArray$DALYsAverted_Rotarix6_10_40 <- outputArray$NoVacDALYs - outputArray$Rotarix6_10_40DALYs
+
+```
+
+## Net Monitary Benefit
+
+```{r}
+##  Net monetary benefit = (E * WTP) - C
+##  E = effectiveness; WTP = willingness-to-pay threshold; C = cost 
+##  E = DALYs of no vaccine - DALYs of vaccination strategy
+##  Cost = Cost of vaccination strategy - cost of no vaccination
+##  Cost-effectiveness acceptability curves
+
+WTP <- seq(0,1000,10) # Define a vector of willingness-to-pay values
+
+# Initialize matrices to save net benefit values for each strategy for number of simulations x number of WTP values
+NB_NoVac <- matrix(data=NA,nrow=nsim,ncol=length(WTP))
+NB_Rotarix6_10 <-matrix(data=NA,nrow=nsim,ncol=length(WTP))
+NB_Rotarix6_10_14 <-matrix(data=NA,nrow=nsim,ncol=length(WTP))
+NB_Rotarix6_10_40 <-matrix(data=NA,nrow=nsim,ncol=length(WTP))
+P_NB <-matrix(data=NA,nrow=nsim,ncol=length(WTP))
+
+for (i in 1:nsim) {
+  for (j in 1:length(WTP)) {
+    
+    # Calculate net monetary benefit of each strategy (compared to no vaccination)
+    NB_NoVac[i,j]       <- 0
+    NB_Rotarix6_10[i,j] <-  ((outputArray$NoVacDALYs[i]-outputArray$Rotarix6_10DALYs[i])*WTP[j])-
+                        (outputArray$Rotarix6_10Cost[i]-outputArray$NoVacCost[i])
+    NB_Rotarix6_10_14[i,j] <-  ((outputArray$NoVacDALYs[i]-
+                        outputArray$Rotarix6_10_14DALYs[i])*WTP[j])-
+                        (outputArray$Rotarix6_10_14Cost[i]
+                        -outputArray$NoVacCost[i])
+    NB_Rotarix6_10_40[i,j] <- ((outputArray$NoVacDALYs[i]-
+                        outputArray$Rotarix6_10_40DALYs[i])*WTP[j])-
+                        (outputArray$Rotarix6_10_40Cost[i]-
+                        outputArray$NoVacCost[i])
+    
+    # Identify the preferred strategy (strategy with the highest net benefit) (1=no vaccination, 2=Rotarix6_10 only, 3=Rotarix6_10+Rotarix6_10_40aign)
+   if(NB_NoVac[i,j]>NB_Rotarix6_10[i,j]&NB_NoVac[i,j]>NB_Rotarix6_10_14[i,j]&NB_NoVac[i,j]>NB_Rotarix6_10_40[i,j])
+      {P_NB[i,j] <- 1}
+    else if(NB_Rotarix6_10[i,j]>NB_NoVac[i,j]&NB_Rotarix6_10[i,j]>NB_Rotarix6_10_14[i,j]&NB_Rotarix6_10[i,j]>NB_Rotarix6_10_40[i,j])
+      {P_NB[i,j] <- 2}
+     else if(NB_Rotarix6_10_14[i,j]>NB_NoVac[i,j]&NB_Rotarix6_10_14[i,j]>NB_Rotarix6_10[i,j]&NB_Rotarix6_10_14[i,j]>NB_Rotarix6_10_40[i,j])
+          {P_NB[i,j] <- 3}
+    else if(NB_Rotarix6_10_40[i,j]>NB_NoVac[i,j]&NB_Rotarix6_10_40[i,j]>NB_Rotarix6_10[i,j]&NB_Rotarix6_10_40[i,j]>NB_Rotarix6_10_14[i,j])
+      {P_NB[i,j] <- 4}
+  }
+}
+
+# Initialize vectors for the P each strategy results in the highest net benefit for each WTP value
+P_NB_NoVac <- rep(0,length(WTP))
+P_NB_Rotarix6_10 <- rep(0,length(WTP))
+P_NB_Rotarix6_10_14 <- rep(0,length(WTP))
+P_NB_Rotarix6_10_40 <- rep(0,length(WTP))
+
+# Calculate the P each strategy results in the highest net benefit for each WTP value
+for (j in 1:length(WTP)) {
+  P_NB_NoVac[j] <- sum(P_NB[,j]==1)/nsim
+  P_NB_Rotarix6_10[j] <- sum(P_NB[,j]==2)/nsim
+  P_NB_Rotarix6_10_14[j] <- sum(P_NB[,j]==3)/nsim
+  P_NB_Rotarix6_10_40[j] <- sum(P_NB[,j]==4)/nsim
+}
+
+### Cost-effectiveness acceptability frontier (CEAF)
+# Initialize vectors net benefit values for each strategy for number of WTP values
+NB_NoVac_mean <- c()
+NB_Rotarix6_10_mean <- c()
+NB_Rotarix6_10_14_mean <- c()
+NB_Rotarix6_10_40_mean <- c()
+P_NB_mean <- c()
+
+# Initialize vectors with "NA"s for CEAF curves
+CEAF_NoVac <- rep(NA,length(WTP))
+CEAF_Rotarix6_10 <- rep(NA,length(WTP))
+CEAF_Rotarix6_10_14 <- rep(NA,length(WTP))
+CEAF_Rotarix6_10_40 <- rep(NA,length(WTP))
+
+# Calculate the average net benefit and the P each strategy results is the highest avg net benefit for each WTP value
+for (j in 1:length(WTP)) {
+    
+    NB_NoVac_mean[j] <- mean(NB_NoVac[,j])
+    NB_Rotarix6_10_mean[j] <- mean(NB_Rotarix6_10[,j])
+    NB_Rotarix6_10_14_mean[j] <- mean(NB_Rotarix6_10_14[,j])
+    NB_Rotarix6_10_40_mean[j] <- mean(NB_Rotarix6_10_40[,j])
+    
+    if(NB_NoVac_mean[j]>NB_Rotarix6_10_mean[j]&NB_NoVac_mean[j]>NB_Rotarix6_10_14_mean[j]&NB_NoVac_mean[j]>NB_Rotarix6_10_40_mean[j]){
+      P_NB_mean[j] <- 1
+      CEAF_NoVac[j] <- P_NB_NoVac[j] # If No Vaccination is the preferred strategy, save the P it is preferred
+    }
+    else if(NB_Rotarix6_10_mean[j]>NB_NoVac_mean[j]&NB_Rotarix6_10_mean[j]>NB_Rotarix6_10_14_mean[j]&NB_Rotarix6_10_mean[j]>NB_Rotarix6_10_40_mean[j]){
+      P_NB_mean[j] <- 2
+      CEAF_Rotarix6_10[j] <- P_NB_Rotarix6_10[j]# If Rotarix6_10 is the preferred strategy, save the P it is preferred
+    }
+    else if(NB_Rotarix6_10_14_mean[j]>NB_NoVac_mean[j]&NB_Rotarix6_10_14_mean[j]>NB_Rotarix6_10_mean[j]&NB_Rotarix6_10_14_mean[j]>NB_Rotarix6_10_40_mean[j]){
+      P_NB_mean[j] <- 3
+      CEAF_Rotarix6_10_14[j] <- P_NB_Rotarix6_10_14[j]# If Rotarix6_10 is the preferred strategy, save the P it is preferred
+    }
+    else if(NB_Rotarix6_10_40_mean[j]>NB_NoVac_mean[j]&NB_Rotarix6_10_40_mean[j]>NB_Rotarix6_10_mean[j]&NB_Rotarix6_10_40_mean[j]>NB_Rotarix6_10_14_mean[j]){
+      P_NB_mean[j] <- 4
+      CEAF_Rotarix6_10_40[j] <- P_NB_Rotarix6_10_40[j]# If Rotarix6_10+Rotarix6_10_40aign is the preferred strategy, save the P it is preferred
+    }
+}
+```
+
+## CEAC
+
+```{r}
+# Plot the results
+png('~/CEACP.png')
+plot(WTP, P_NB_NoVac, type= "l", col='black', ylab="Probability of being cost-effective",xlab="WTP",
+    main="Cost-effectiveness Acceptability Curve\nNo Vaccination v. Rotarix Schedules", ylim=c(0,1))
+lines(WTP, P_NB_Rotarix6_10, col='#CA0020')
+lines(WTP, P_NB_Rotarix6_10_14, col='#006BA4FF')
+lines(WTP, P_NB_Rotarix6_10_40, col='#ABABABFF')
+abline(v=335,col="darkgreen")
+text(x=320, y=0.5, srt=90,col="darkgreen", cex=0.75, 'WTP (US $335)')
+legend("bottomright",legend=c("No vaccination","Rotarix6_10","Rotarix6_10_14","Rotarix6_10_40"),
+      col=c("black",'#CA0020',"#006BA4FF",'#ABABABFF'),
+      lty=1, ncol=1, cex =.7, pt.cex = 1)
+
+dev.off()
+
+```
+
+## CEAF
+
+```{r}
+# Plot the results
+
+png('~/CEAFP.png')
+plot(WTP, CEAF_NoVac, type= "b", col='black', ylab="Probability of having highest net benefit",xlab="WTP",
+    main="Cost-effectiveness Acceptability Frontier\nNo Vaccination v. Rotarix Schedules", ylim=c(0,1))
+lines(WTP,CEAF_NoVac, col='black')
+lines(WTP, CEAF_Rotarix6_10, col='#CA0020')
+lines(WTP, CEAF_Rotarix6_10_14, col='#006BA4FF')
+lines(WTP, CEAF_Rotarix6_10_40, col='#ABABABFF')
+points(WTP, CEAF_Rotarix6_10, col='#CA0020')
+points(WTP, CEAF_Rotarix6_10_14, col='#006BA4FF')
+points(WTP, CEAF_Rotarix6_10_40, col='#ABABABFF')
+abline(v=335,col="darkgreen")
+text(x=320, y=0.5, srt=90,col="darkgreen", cex=0.75, 'WTP (US $335)')
+legend("bottomright",legend=c("No Vaccination","Rotarix6_10 vaccination","Rotarix6_10_14 vaccination","Rotarix6_10_40 vaccination"),
+      col=c("black",'#CA0020',"#006BA4FF",'#ABABABFF'),
+      lty=1, ncol=1, cex =.7, pt.cex = 1)
+dev.off()
+```
+
+## ICERs
+
+```{r}
+#total cost
+TotCost_NoVac          <- mean(outputArray$NoVacCost)
+TotCost_Rotarix6_10    <- mean(outputArray$Rotarix6_10Cost)
+TotCost_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14Cost)
+TotCost_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40Cost)
+#intervention cost
+IntCost_NoVac          <- mean(outputArray$NoVacCostInt)
+IntCost_Rotarix6_10    <- mean(outputArray$Rotarix6_10CostInt)
+IntCost_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14CostInt)
+IntCost_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40CostInt)
+#treatment cost
+TrtCost_NoVac          <- mean(outputArray$NoVacCostTrt)
+TrtCost_Rotarix6_10    <- mean(outputArray$Rotarix6_10CostTrt)
+TrtCost_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14CostTrt)
+TrtCost_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40CostTrt)
+#dalys
+DALYs_NoVac          <- mean(outputArray$NoVacDALYs)
+DALYs_Rotarix6_10    <- mean(outputArray$Rotarix6_10DALYs)
+DALYs_Rotarix6_10_14 <- mean(outputArray$Rotarix6_10_14DALYs)
+DALYs_Rotarix6_10_40 <- mean(outputArray$Rotarix6_10_40DALYs)
+
+costDiff6_10    <- TotCost_Rotarix6_10 - TotCost_NoVac
+costDiff6_10_14 <- TotCost_Rotarix6_10_14 - TotCost_NoVac
+costDiff6_10_40 <- TotCost_Rotarix6_10_40 - TotCost_NoVac
+
+Casesav10   <- mean(outputArray$CasesAverted_Rotarix6_10)
+Casesav14   <- mean(outputArray$CasesAverted_Rotarix6_10_14)
+Casesav40   <- mean(outputArray$CasesAverted_Rotarix6_10_40) 
+Hospsav10   <- mean(outputArray$HospAverted_Rotarix6_10)
+Hospsav14   <- mean(outputArray$HospAverted_Rotarix6_10_14)
+Hospsav40   <- mean(outputArray$HospAverted_Rotarix6_10_40)
+DALYsav10   <- mean(outputArray$DALYsAverted_Rotarix6_10)
+DALYsav14   <- mean(outputArray$DALYsAverted_Rotarix6_10_14)
+DALYsav40   <- mean(outputArray$DALYsAverted_Rotarix6_10_40)
+Deathsav10  <- mean(outputArray$DeathsAverted_Rotarix6_10)
+Deathsav14  <- mean(outputArray$DeathsAverted_Rotarix6_10_14)
+Deathsav40  <- mean(outputArray$DeathsAverted_Rotarix6_10_40)
+
+costCaseAv10        <- costDiff6_10/Casesav10
+costCaseAv6_10_14   <- costDiff6_10_14/Casesav14
+costCaseAv6_10_40   <- costDiff6_10_40/Casesav40
+costHospAv10        <- costDiff6_10/Hospsav10
+costHospAv6_10_14   <- costDiff6_10_14/Hospsav14
+costHospAv6_10_40   <- costDiff6_10_40/Hospsav40
+costDALYAv10        <- costDiff6_10/DALYsav10
+costDALYAv6_10_14   <- costDiff6_10_14/DALYsav14
+costDALYAv6_10_40   <- costDiff6_10_40/DALYsav40
+costDeathAv10       <- costDiff6_10/Deathsav10
+costDeathAv6_10_14  <- costDiff6_10_14/Deathsav14
+costDeathAv6_10_40  <- costDiff6_10_40/Deathsav40
+
+x <- c(outputArray$CERatioX_Rotarix6_10,outputArray$CERatioX_Rotarix6_10_14,outputArray$CERatioX_Rotarix6_10_40)
+y <- c(outputArray$CERatioY_Rotarix6_10,outputArray$CERatioY_Rotarix6_10_14,outputArray$CERatioY_Rotarix6_10_40)
+Strategy <- c(rep("Rotarix 6/10",length(outputArray$CERatioX_Rotarix6_10)),
+              rep("Rotarix 6/10/14",length(outputArray$CERatioX_Rotarix6_10)),
+              rep("Rotarix 6/10/40",length(outputArray$CERatioX_Rotarix6_10)))
+data1 <- data.frame(x,y,Strategy)
+manual_points <- data.frame(
+  x = c(DALYsav10,DALYsav14),  # x-coordinates of the points
+  y = c(costDiff6_10,costDiff6_10_14),  # y-coordinates of the points
+  label = c(print(round(costDALYAv10,2)),print(round(costDALYAv6_10_14,2))),
+  col = c("darkred","royalblue4")  # Colors for the points
+)
+manual_points1 <- data.frame(
+  x = c(DALYsav40),  # x-coordinates of the points
+  y = c(costDiff6_10_40),  # y-coordinates of the points
+  label = c(print(round(costDALYAv6_10_40,2))),  # Labels for the points
+  col = c("gray34")  # Colors for the points
+)
+ggplot(data1,aes(x,y,col=Strategy)) + 
+  ggtitle("Cost-Effectiveness Plane", subtitle="Governemnt Perspective - Strategies Compared to No Vaccination") + 
+    geom_point(size=0.5) + geom_textabline(slope=335, color="darkgreen",label="WTP Threshold") + 
+  xlab("Difference in Effects of Vaccine Strategy (DALYs Averted)") + ylab("Difference in Cost of Vaccine Strategy") + 
+  geom_hline(yintercept=0, color = "black") + geom_vline(xintercept=0, color = "black") + 
+  scale_x_continuous(labels = unit_format(unit = "K", scale = 1e-3)) + 
+  scale_y_continuous(labels = unit_format(unit = "K", scale = 1e-3)) + 
+  theme(axis.text.y = element_text(angle = 90, hjust = 0.5)) +
+   # Add manual points with different colors
+  geom_point(data = manual_points, aes(x = x, y = y), color = manual_points$col, size = 3) +
+  geom_text(data = manual_points, aes(x = x, y = y, label = label), vjust = 1, hjust = -0.5, size = 5, fontface="bold", color = "black") +
+  geom_point(data = manual_points1, aes(x = x, y = y), color = manual_points1$col, size = 3) +
+  geom_text(data = manual_points1, aes(x = x, y = y, label = label), vjust = -1, hjust = 1, size = 5, fontface="bold", color = "black") +
+  guides(colour = guide_legend(override.aes = list(size = 3))) + 
+  scale_color_manual(values = c("#CA0020","#006BA4FF","#ABABABFF"))
+  
+ggsave("CEAplane_plot3P.png", path ="~")
+
+```
+
+## Tables
+
+```{r}
+#####################
+Number_Averted <- c("No Vaccine", "Rotarix 6/10","Rotarix 6/10/14", "Rotarix 6/10/40")
+averted <- c(#cost
+             round(TotCost_NoVac,-5),round(TotCost_Rotarix6_10,-5),
+             round(TotCost_Rotarix6_10_14,-5),round(TotCost_Rotarix6_10_40,-5),
+             #DALYs
+             round(DALYs_NoVac,-2),round(DALYs_Rotarix6_10,-2),
+             round(DALYs_Rotarix6_10_14,-2),round(DALYs_Rotarix6_10_40,-2),
+             #DALYs Averted
+             NA,round(DALYsav10,-2),round(DALYsav14,-2),round(DALYsav40,-2),
+             #cost per DALY averted
+             NA, round(costDALYAv10,2),round(costDALYAv6_10_14,2),round(costDALYAv6_10_40,2),
+             #ICER
+             "--",round(mean(outputArray$ICERatio_Rotarix6_10),1),
+             round(mean(outputArray$ICERatio_Rotarix6_10_14),1),
+             round(mean(outputArray$ICERatio_Rotarix6_10_40),1))
+             # "--",round(mean(outputArray$ICERatio_Rotarix6_10),1),round(mean(outputArray$ICERatio_Rotarix6_10_14),1),"Strongly Dominated")
+z <- as.numeric(averted[1:4])
+x <- averted[5:8]
+a <- averted[9:12]
+b <- as.numeric(averted[13:16])
+c <- averted[17:20]
+
+table3 <- data.frame(Number_Averted,z,x,a,b,c)
+
+table3 |>
+  gt() |>
+  tab_header(
+    title = "Cost-Effectiveness Comparison of Rotarix Vaccine Strategies",
+    subtitle = glue::glue("Governemnt Perspective - Compared to No Vaccination ")
+  )  |>
+  cols_label(Number_Averted=" ",z="Cost",x="DALYs (n)",a="DALYs Averted (n)",b="Cost per DALY averted",c="ICER")|>
+  fmt_currency(
+    columns = c(z,b),
+    currency = "USD",
+    decimals=0
+  )|> 
+  gtsave(filename = "CostAndOutcomesP.png",path ="~")
+
+#####################
+
+
+```
