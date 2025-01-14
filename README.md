@@ -96,8 +96,11 @@ For example, “Yr0MS6_10_14” is a data frame that contains the number of mode
 | Discount rate                                             | discount               | 0.03          | Fixed                        | (WHO, 2019)              |
 
 *All costs are inflated by 3% per year to reflect predicted 2025 prices
+
 †Per case costs to the government used in both government and societal perspective analysis
+
 ‡Per case direct and indirect costs (including loss of productivity) to the household used in the societal perspective analysis
+
 **Uncomment lines in the code to run the societal perspective. Case 1 Lines 223-6, Case 2 Lines 184-7, Sens10 Lines 150-3, and Sens14 Lines 150-3.
 ![image](https://github.com/user-attachments/assets/a2098873-857a-475d-a36a-a34e86f14764)
 
