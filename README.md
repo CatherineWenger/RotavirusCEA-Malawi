@@ -1,6 +1,8 @@
 # Cost-effectiveness Analysis of Alternative Infant and Neonatal Rotavirus Vaccination Schedules in Malawi
 
-This repo contains the codes for **[medRxiv__link](https://doi.org/10.1101/2024.11.22.24317751)**
+This repo contains the codes for the **[PLoS GPH Publication:]([https://doi.org/10.1101/2024.11.22.24317751](https://doi.org/10.1371/journal.pgph.0004341))**
+
+Wenger C, Asare EO, Kwon J, Li X, Mwinjiwa E, et al. (2025) Cost-effectiveness analysis of alternative infant and neonatal rotavirus vaccination schedules in Malawi. PLOS Global Public Health 5(4): e0004341. 
 
 This study compares the cost-effectiveness of 5 rotavirus vaccine strategies in Malawi from 2025-2034.
 
